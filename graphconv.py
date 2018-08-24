@@ -4,6 +4,7 @@ import math
 import time
 
 def train_GCNN(model, x, adjacency_matrix, y, epochs, batch_size, optimizer, criterion):
+    # TODO: Validation splitting
     batches = math.ceil(len(adjacency_matrix)/batch_size)
     last_batch_size = len(adjacency_matrix)-(batches-1)*batch_size
     for epoch in range(epochs):
