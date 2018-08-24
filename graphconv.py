@@ -1,6 +1,34 @@
 import torch
 import torch.nn as nn
+import math
+import time
 
+def train_GCNN(model, x, adjacency_matrix, y, epochs, batch_size, optimizer, criterion):
+    batches = math.ceil(len(adjacency_matrix)/batch_size)
+    last_batch_size = len(adjacency_matrix)-(batches-1)*batch_size
+    for epoch in range(epochs):
+        start_time = time.time()
+        print('EPOCH: %s\t' % (epoch+1),end='')
+        loss_epoch = 0
+        batch_size = 64
+        for batch in range(batches):
+            start_index = batch*batch_size
+            if batch == batches-1:
+                batch_size = last_batch_size
+            y_pred = torch.empty(batch_size)
+            y_true = y[start_index:start_index+batch_size]
+            for sample in range(batch_size):
+                x_sample = x[start_index+sample]
+                adj_mat_sample = adjacency_matrix[start_index+sample]
+                y_pred[sample] = model(x_sample, adj_mat_sample)
+            loss_batch = criterion(y_pred,y_true)
+            loss_epoch += loss_batch.item()
+            optimizer.zero_grad()
+            loss_batch.backward()
+            optimizer.step()
+        print('LOSS: %s' % (loss_epoch/batches))
+        print("--- %s seconds ---" % (time.time() - start_time))
+    return model
 
 class GraphConv(nn.Module):
     def __init__(self, input_features, output_features, bias=True):
